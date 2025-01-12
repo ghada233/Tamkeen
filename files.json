@@ -5,5 +5,11 @@
   "Teaching field.html": [],
   "The field of learning outcomes.html": [],
   "The field of student guidance.html": [],
-  "undefined": [ ]
+  "undefined": [],
+  "examplePage": [
+    {
+      "name": "classification metrics simplified.pdf",
+      "path": "/uploads/1736693605801-classification metrics simplified.pdf"
+    }
+  ]
 }

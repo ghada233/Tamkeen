@@ -13,36 +13,36 @@ const filesJsonPath = path.join(__dirname, 'files.json');
 
 // Ensure the uploads folder exists
 if (!fs.existsSync(uploadsPath)) {
-    fs.mkdirSync(uploadsPath);
+    fs.mkdirSync(uploadsPath, { recursive: true }); // Create the uploads folder
 }
 
 // Ensure the files.json file exists
 if (!fs.existsSync(filesJsonPath)) {
-    fs.writeFileSync(filesJsonPath, '{}');
+    fs.writeFileSync(filesJsonPath, '{}'); // Create files.json if it doesn't exist
 }
 
 // Multer storage configuration for handling file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadsPath);
+        cb(null, uploadsPath); // Save files to uploads folder
     },
     filename: (req, file, cb) => {
         const timestamp = Date.now();
         const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8'); // Ensure UTF-8 encoding
-        cb(null, `${timestamp}-${originalName}`);
+        cb(null, `${timestamp}-${originalName}`); // Add timestamp to the filename
     }
 });
 
 const upload = multer({ storage });
 
 // Middleware
-app.use(cors());
+app.use(cors()); // Enable cross-origin requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (uploads and front-end assets)
+// Serve static files (uploads and public assets)
 app.use('/uploads', express.static(uploadsPath));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public'))); // For serving front-end files
 
 // Routes
 // Root route
@@ -52,9 +52,9 @@ app.get('/', (req, res) => {
         <p>Endpoints available:</p>
         <ul>
             <li><strong>POST /upload</strong>: Upload a file</li>
-            <li><strong>GET /get-files</strong>: Retrieve a list of uploaded files</li>
+            <li><strong>GET /get-files?page=pageName</strong>: Retrieve a list of uploaded files</li>
             <li><strong>DELETE /delete-file</strong>: Delete a file</li>
-            <li><strong>Access files:</strong> http://localhost:${PORT}/uploads/filename</li>
+            <li><strong>Access files:</strong> /uploads/filename</li>
         </ul>
     `);
 });
@@ -65,11 +65,10 @@ app.post('/upload', upload.single('file'), (req, res) => {
         return res.status(400).json({ message: 'No file uploaded!' });
     }
 
-    const { page } = req.body; // Get the target page from the request
+    const { page } = req.body;
     const originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
     const savedFileName = req.file.filename;
 
-    // Read files.json and update it
     let filesData = {};
     try {
         filesData = JSON.parse(fs.readFileSync(filesJsonPath, 'utf-8'));
